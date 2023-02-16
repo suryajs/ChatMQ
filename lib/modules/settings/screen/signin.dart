@@ -142,7 +142,7 @@ class _SignInState extends State<SignIn> {
                                           _manager
                                               .subScribeTo('CHMQ_0_sign_in');
                                           String message =
-                                              "{name:${_userTextController.text},password:${_passwordTextController.text}}";
+                                              '{"name":"${_userTextController.text}","password":"${_passwordTextController.text}"}';
                                           _manager.publish(message);
                                           _manager
                                               .unSubscribeFromCurrentTopic();

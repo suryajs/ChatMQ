@@ -199,7 +199,7 @@ class _SignUpState extends State<SignUp> {
                                           _manager
                                               .subScribeTo('CHMQ_0_sign_up');
                                           String messge =
-                                              " {Username:usernam,DOB: 07/12/22, Email: bala@gmail.com,Organization:Organization, Designation:Designation, Password:password }";
+                                              ' {"Username":"usertttname","DOB": "07/12/22", "Email": "bala@gmail.com","Organization":"Organization", "Designation":"Designation", "Password":"word" }';
                                           _manager.publish(messge);
                                           print(_manager
                                               .currentState.getReceivedText);
@@ -225,7 +225,7 @@ class _SignUpState extends State<SignUp> {
                                                 'dht');
                                             if (_manager.currentState
                                                     .getReceivedText ==
-                                                '') {
+                                                'ok') {
                                               _manager
                                                   .unSubscribeFromCurrentTopic();
                                               await prefs.setBool(
