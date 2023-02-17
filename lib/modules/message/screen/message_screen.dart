@@ -307,7 +307,7 @@ class _MessageScreenState extends State<MessageScreen> {
               (state == MQTTAppConnectionState.connected)
           ? () {
               _handleSubscribePress(state);
-            }
+          }
           : null, //
     );
   }
