@@ -136,6 +136,7 @@ class MQTTManager extends ChangeNotifier {
   /// Unsubscribe from a topic
   void unSubscribe(String topic) {
     _client!.unsubscribe(topic);
+    _currentState.clearText();
   }
 
   /// Unsubscribe from a topic

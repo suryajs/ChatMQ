@@ -19,6 +19,7 @@ class _SignInState extends State<SignIn> {
   final TextEditingController _userTextController = TextEditingController();
 
   late MQTTManager _manager;
+  bool isLoding = false;
   @override
   Widget build(BuildContext context) {
     _manager = Provider.of<MQTTManager>(context);
@@ -134,16 +135,21 @@ class _SignInState extends State<SignIn> {
                                   child: FlatButton(
                                       onPressed: () async {
                                         if (_formKey.currentState!.validate()) {
+                                          setState(() {
+                                            isLoding = true;
+                                          });
                                           final prefs = await SharedPreferences
                                               .getInstance();
                                           await prefs.setBool('LogedIn', true);
-                                          await prefs.setString(
-                                              'identifier', 'ans');
+                                          await prefs.setString('identifier',
+                                              '${_userTextController.text}');
                                           _manager
                                               .subScribeTo('CHMQ_0_sign_in');
                                           String message =
-                                              '{"name":"${_userTextController.text}","password":"${_passwordTextController.text}"}';
+                                              '{"Username":"${_userTextController.text}","Password":"${_passwordTextController.text}"}';
                                           _manager.publish(message);
+                                          print(_manager
+                                              .currentState.getReceivedText);
                                           _manager
                                               .unSubscribeFromCurrentTopic();
                                           _manager.currentState.clearText();
@@ -154,11 +160,14 @@ class _SignInState extends State<SignIn> {
                                               'CHMQ_0_sign_in_res');
                                           print(_manager
                                               .currentState.getReceivedText);
-                                          // Navigator.pushNamed(context, '/room');
+
                                           Timer(Duration(seconds: 10),
                                               () async {
                                             print(_manager
                                                 .currentState.getReceivedText);
+                                            setState(() {
+                                              isLoding = false;
+                                            });
                                             if (_manager.currentState
                                                     .getReceivedText ==
                                                 'ok') {
@@ -167,24 +176,41 @@ class _SignInState extends State<SignIn> {
                                               await prefs.setBool(
                                                   'LogedIn', true);
                                               await prefs.setString(
-                                                  'identifier', 'ans');
+                                                  'identifier',
+                                                  '${_userTextController.text}');
                                               Navigator.pushNamed(
                                                   context, '/room');
+                                            } else if (_manager.currentState
+                                                    .getReceivedText ==
+                                                'Na') {
+                                              _manager
+                                                  .unSubscribeFromCurrentTopic();
+                                              print('df' +
+                                                  _manager.currentState
+                                                      .getReceivedText);
+                                              const snackBar = SnackBar(
+                                                  content: Text(
+                                                      'Incorrect Username or Password'));
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(snackBar);
                                             } else {
                                               _manager
                                                   .unSubscribeFromCurrentTopic();
                                               print('df' +
                                                   _manager.currentState
                                                       .getReceivedText);
-                                              const snackBar =
-                                                  SnackBar(content: Text(''));
+                                              const snackBar = SnackBar(
+                                                  content:
+                                                      Text('Network Issue'));
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(snackBar);
                                             }
                                           });
                                         }
                                       },
-                                      child: Text("Sign In")),
+                                      child: isLoding
+                                          ? CircularProgressIndicator()
+                                          : Text("Sign In")),
                                 ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,

@@ -179,10 +179,16 @@ class _MessageScreenState extends State<MessageScreen> {
                   child: ListView.builder(
                       itemCount: ((len) / 2).toInt(),
                       itemBuilder: (BuildContext context, int index) {
+                        print(a.substring(1, 4));
                         if (index == 0) {
                           j = 0;
                         }
-                        if (index == 0 && a.substring(1, 4) == 'name') {
+                        if ((index == 0 || index == 1) &&
+                            a.substring(1, 4) == 'ok') {
+                          j = 1;
+                          return Text('Message sent from $tdata');
+                        }
+                        if (index == 0 && a.substring(1, 7) == '{"Room') {
                           j = 2;
                           return Text('Message sent from $tdata');
                         } else if (len == 0 || len == 1)
@@ -259,9 +265,13 @@ class _MessageScreenState extends State<MessageScreen> {
       disabledTextColor: Colors.black38,
       child: const Text('Send'),
       onPressed: state == MQTTAppConnectionState.connectedSubscribed
-          ? () {
+          ? () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('LogedIn', true);
+              var identifier = await prefs.getString('identifier');
               _publishMessage(
-                'bala\n' + _messageTextController.text, /*widget._identifier*/
+                '$identifier\n' +
+                    _messageTextController.text, /*widget._identifier*/
               );
             }
           : null, //

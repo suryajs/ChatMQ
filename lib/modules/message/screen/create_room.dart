@@ -21,6 +21,7 @@ class Subscribe_Screen extends StatefulWidget {
 class _Subscribe_ScreenState extends State<Subscribe_Screen> {
   final TextEditingController _topicTextController = TextEditingController();
   late MQTTManager _manager;
+  bool isLoding = false;
 
   Future change_screen() async {
     final prefs = await SharedPreferences.getInstance();
@@ -209,18 +210,21 @@ class _Subscribe_ScreenState extends State<Subscribe_Screen> {
         color: Colors.transparent,
         textColor: Colors.white,
         disabledTextColor: Colors.black38,
-        child: Text('Subscribe'),
+        child: isLoding ? CircularProgressIndicator() : Text('Create'),
         onPressed: (state == MQTTAppConnectionState.connectedSubscribed) ||
                 (state == MQTTAppConnectionState.connectedUnSubscribed) ||
                 (state == MQTTAppConnectionState.connected)
             ? () async {
                 // _handleSubscribePress(state);
                 //     Navigator.pushNamed(context, '/');
+                setState(() {
+                  isLoding = true;
+                });
                 final prefs = await SharedPreferences.getInstance();
                 _manager.subScribeTo('CHMQ_0_create_room');
                 String? identifier = prefs.getString('identifier');
                 String message =
-                    "{Room_name: ${_topicTextController.text},Username:$identifier}";
+                    '{"Room_name": "${_topicTextController.text}","Username":"$identifier"}';
                 _manager.publish(message);
                 _manager.unSubscribeFromCurrentTopic();
                 _manager.currentState.clearText();
@@ -231,12 +235,28 @@ class _Subscribe_ScreenState extends State<Subscribe_Screen> {
                 Timer(Duration(seconds: 10), () async {
                   print(_manager.currentState.getReceivedText);
                   if (_manager.currentState.getReceivedText == 'ok') {
+                    setState(() {
+                      isLoding = false;
+                    });
                     _handleSubscribePress(state);
                     Navigator.pushNamed(context, '/');
-                  } else {
+                  } else if (_manager.currentState.getReceivedText ==
+                      'already registered') {
+                    setState(() {
+                      isLoding = false;
+                    });
                     _manager.unSubscribeFromCurrentTopic();
                     print('df' + _manager.currentState.getReceivedText);
-                    const snackBar = SnackBar(content: Text(''));
+                    const snackBar =
+                        SnackBar(content: Text('already registered'));
+                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  } else {
+                    _manager.unSubscribeFromCurrentTopic();
+                    setState(() {
+                      isLoding = false;
+                    });
+                    print('df' + _manager.currentState.getReceivedText);
+                    const snackBar = SnackBar(content: Text('Network Issue'));
                     ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   }
                 });

@@ -23,6 +23,7 @@ class _Enter_roomState extends State<Enter_room> {
   final TextEditingController _topicTextController = TextEditingController();
   late MQTTManager _manager;
 
+  bool isLoding = false;
   Future change_screen() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('LogedIn', false);
@@ -209,16 +210,19 @@ class _Enter_roomState extends State<Enter_room> {
         color: Colors.transparent,
         textColor: Colors.white,
         disabledTextColor: Colors.black38,
-        child: Text('Subscribe'),
+        child: isLoding ? CircularProgressIndicator() : Text('Subscribe'),
         onPressed: (state == MQTTAppConnectionState.connectedSubscribed) ||
                 (state == MQTTAppConnectionState.connectedUnSubscribed) ||
                 (state == MQTTAppConnectionState.connected)
             ? () async {
+                setState(() {
+                  isLoding = true;
+                });
                 final prefs = await SharedPreferences.getInstance();
                 _manager.subScribeTo('CHMQ_0_enter_room');
                 String? identifier = prefs.getString('identifier');
                 String message =
-                    "{Room_name: ${_topicTextController.text},Username:$identifier}";
+                    '{"Room_name": "${_topicTextController.text}","Username":"$identifier"}';
                 _manager.publish(message);
                 _manager.unSubscribeFromCurrentTopic();
                 _manager.currentState.clearText();
@@ -230,11 +234,18 @@ class _Enter_roomState extends State<Enter_room> {
                   print(_manager.currentState.getReceivedText);
                   if (_manager.currentState.getReceivedText == 'ok') {
                     _handleSubscribePress(state);
+                    setState(() {
+                      isLoding = false;
+                    });
                     Navigator.pushNamed(context, '/');
                   } else {
+                    setState(() {
+                      isLoding = false;
+                    });
                     _manager.unSubscribeFromCurrentTopic();
                     print('df' + _manager.currentState.getReceivedText);
-                    const snackBar = SnackBar(content: Text(''));
+                    const snackBar =
+                        SnackBar(content: Text('Room Not Created'));
                     ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   }
                 });

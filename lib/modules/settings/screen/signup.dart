@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_mqtt/modules/core/managers/MQTTManager.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,11 +23,30 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController _passwordTextController = TextEditingController();
   final TextEditingController _userTextController = TextEditingController();
   final TextEditingController _dobTextController = TextEditingController();
+  final TextEditingController _emailTextController = TextEditingController();
   final TextEditingController _designationTextController =
       TextEditingController();
   final TextEditingController _OrganizationTextController =
       TextEditingController();
   late MQTTManager _manager;
+  bool isLoding = false;
+  DateTime date = DateTime.now();
+  var temp = 'Date of birth';
+
+  _selectDate(BuildContext context) async {
+    DateTime? newSelectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+    );
+    if (newSelectedDate == null) {
+      return;
+    }
+    setState(() {
+      date = newSelectedDate;
+    });
+  }
 
   Future<String?> _getId() async {
     var deviceInfo = DeviceInfoPlugin();
@@ -117,13 +137,52 @@ class _SignUpState extends State<SignUp> {
                                           left: 0, bottom: 0, top: 0, right: 0),
                                       labelText: "Name",
                                     )),
-                                TextFormField(
-                                    controller: _dobTextController,
-                                    decoration: InputDecoration(
-                                      contentPadding: const EdgeInsets.only(
-                                          left: 0, bottom: 0, top: 0, right: 0),
-                                      labelText: "Date Of Birth",
+                                GestureDetector(
+                                    onTap: () {
+                                      print(_selectDate(context));
+                                      setState(() {
+                                        temp = DateFormat.yMMMd().format(date);
+                                      });
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Container(
+                                            padding: EdgeInsets.fromLTRB(
+                                                0, 15, 0, 0),
+                                            height: 50,
+                                            child: Text(
+                                              temp,
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 73, 73, 73)),
+                                            ),
+                                            decoration: BoxDecoration(
+                                                border: Border(
+                                                    bottom: BorderSide(
+                                                        color: Color.fromARGB(
+                                                            255,
+                                                            133,
+                                                            131,
+                                                            131)))),
+                                          ),
+                                        ),
+                                      ],
                                     )),
+                                TextFormField(
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter email Id';
+                                      }
+                                    },
+                                    controller: _emailTextController,
+                                    decoration: InputDecoration(
+                                        contentPadding: const EdgeInsets.only(
+                                            left: 0,
+                                            bottom: 0,
+                                            top: 0,
+                                            right: 0),
+                                        labelText: "Email ID")),
                                 TextFormField(
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
@@ -187,6 +246,9 @@ class _SignUpState extends State<SignUp> {
                                   ),
                                   child: FlatButton(
                                       onPressed: () async {
+                                        setState(() {
+                                          isLoding = true;
+                                        });
                                         if (_formKey.currentState!.validate()) {
                                           final prefs = await SharedPreferences
                                               .getInstance();
@@ -199,8 +261,9 @@ class _SignUpState extends State<SignUp> {
                                           _manager
                                               .subScribeTo('CHMQ_0_sign_up');
                                           String messge =
-                                              ' {"Username":"usertttname","DOB": "07/12/22", "Email": "bala@gmail.com","Organization":"Organization", "Designation":"Designation", "Password":"word" }';
+                                              ' {"Username":"${_userTextController.text}","DOB": "${DateFormat('dd/MM/yyyy').format(date)}", "Email": "${_emailTextController.text}","Organization":"${_OrganizationTextController.text}", "Designation":"${_designationTextController.text}", "Password":"${_passwordTextController.text}" }';
                                           _manager.publish(messge);
+                                          print(date);
                                           print(_manager
                                               .currentState.getReceivedText);
                                           _manager
@@ -223,6 +286,9 @@ class _SignUpState extends State<SignUp> {
                                             print(_manager.currentState
                                                     .getReceivedText +
                                                 'dht');
+                                            setState(() {
+                                              isLoding = false;
+                                            });
                                             if (_manager.currentState
                                                     .getReceivedText ==
                                                 'ok') {
@@ -231,23 +297,53 @@ class _SignUpState extends State<SignUp> {
                                               await prefs.setBool(
                                                   'LogedIn', true);
                                               await prefs.setString(
-                                                  'identifier', 'ans');
+                                                  'identifier',
+                                                  '${_userTextController.text}');
                                               Navigator.pushNamed(
                                                   context, '/room');
+                                            } else if (_manager.currentState
+                                                    .getReceivedText ==
+                                                'already registered') {
+                                              _manager
+                                                  .unSubscribeFromCurrentTopic();
+                                              print('df' +
+                                                  _manager.currentState
+                                                      .getReceivedText);
+                                              const snackBar = SnackBar(
+                                                  content: Text(
+                                                      'already registered'));
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(snackBar);
+                                            } else if (_manager.currentState
+                                                    .getReceivedText ==
+                                                'Na') {
+                                              _manager
+                                                  .unSubscribeFromCurrentTopic();
+                                              print('df' +
+                                                  _manager.currentState
+                                                      .getReceivedText);
+                                              const snackBar = SnackBar(
+                                                  content:
+                                                      Text('Invalid Details'));
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(snackBar);
                                             } else {
                                               _manager
                                                   .unSubscribeFromCurrentTopic();
                                               print(_manager.currentState
                                                   .getReceivedText);
-                                              const snackBar =
-                                                  SnackBar(content: Text(''));
+                                              const snackBar = SnackBar(
+                                                  content:
+                                                      Text('Network Issue'));
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(snackBar);
                                             }
                                           });
                                         }
                                       },
-                                      child: Text("sign up")),
+                                      child: isLoding
+                                          ? CircularProgressIndicator()
+                                          : Text("sign up")),
                                 ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
