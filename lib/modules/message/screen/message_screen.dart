@@ -248,7 +248,7 @@ class _MessageScreenState extends State<MessageScreen> {
       shouldEnable = true;
     }
     return TextField(
-        enabled: shouldEnable,
+        enabled: true,
         controller: controller,
         decoration: InputDecoration(
           contentPadding:

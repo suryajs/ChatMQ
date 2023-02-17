@@ -116,7 +116,7 @@ class _Enter_roomState extends State<Enter_room> {
 
   Widget _buildEditableColumn(MQTTAppState currentAppState) {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(35),
       child: Column(
         children: <Widget>[
           _buildTopicSubscribeRow(currentAppState),
@@ -198,8 +198,8 @@ class _Enter_roomState extends State<Enter_room> {
           ),
         ],
         gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: [
             Color.fromARGB(255, 131, 35, 228),
             Color.fromARGB(255, 252, 220, 252)

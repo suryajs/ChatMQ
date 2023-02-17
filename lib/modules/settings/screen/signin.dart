@@ -104,6 +104,7 @@ class _SignInState extends State<SignIn> {
                                         return 'Please enter Password';
                                       }
                                     },
+                                    obscureText: true,
                                     decoration: InputDecoration(
                                       // border: OutlineInputBorder(
                                       //     borderRadius:
@@ -161,7 +162,7 @@ class _SignInState extends State<SignIn> {
                                           print(_manager
                                               .currentState.getReceivedText);
 
-                                          Timer(Duration(seconds: 10),
+                                          Timer(Duration(seconds: 5),
                                               () async {
                                             print(_manager
                                                 .currentState.getReceivedText);

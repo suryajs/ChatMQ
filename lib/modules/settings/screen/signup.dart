@@ -216,6 +216,7 @@ class _SignUpState extends State<SignUp> {
                                       }
                                     },
                                     controller: _passwordTextController,
+                                    obscureText: true,
                                     decoration: InputDecoration(
                                       // border: OutlineInputBorder(
                                       //     borderRadius:

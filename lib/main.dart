@@ -7,7 +7,6 @@ import 'package:flutter_mqtt/modules/settings/screen/signin.dart';
 import 'package:flutter_mqtt/modules/settings/screen/signup.dart';
 import 'package:flutter_mqtt/splash_screen.dart';
 import 'package:provider/provider.dart';
-
 import 'modules/core/managers/MQTTManager.dart';
 import 'modules/helpers/screen_route.dart';
 import 'modules/helpers/service_locator.dart';
